@@ -1,0 +1,473 @@
+/* ============================
+   App Layout
+   ============================ */
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #0f172a;
+  color: #f1f5f9;
+}
+
+.app-header {
+  padding: 1.25rem 1.5rem 0.75rem;
+  text-align: center;
+  border-bottom: 1px solid #1e293b;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 1.5rem;
+  gap: 1rem;
+  max-width: 1000px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* ============================
+   Input Panel
+   ============================ */
+.input-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.input-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.input-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.tree-input {
+  flex: 1;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  background: #1e293b;
+  color: #e2e8f0;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.tree-input:focus {
+  border-color: #3b82f6;
+}
+
+.tree-input::placeholder {
+  color: #475569;
+}
+
+/* ============================
+   Buttons
+   ============================ */
+.btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  background: #1e293b;
+  color: #e2e8f0;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.btn:hover {
+  background: #334155;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn-copy {
+  color: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.btn-copy:hover {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.btn-clear {
+  color: #f97316;
+  border-color: #f97316;
+}
+
+.btn-clear:hover {
+  background: rgba(249, 115, 22, 0.1);
+}
+
+.btn-danger {
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+.btn-danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.btn-settings {
+  color: #94a3b8;
+  border-color: #475569;
+  font-size: 0.8rem;
+}
+
+.btn-settings:hover {
+  color: #e2e8f0;
+}
+
+/* ============================
+   Tree Canvas
+   ============================ */
+.tree-canvas-container {
+  flex: 1;
+  min-height: 300px;
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  background: #0c1222;
+  position: relative;
+  overflow: hidden;
+}
+
+.tree-canvas-svg {
+  width: 100%;
+  height: 100%;
+  min-height: 300px;
+  display: block;
+}
+
+.node-actions {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 10;
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* ============================
+   SVG Node Styles
+   ============================ */
+.tree-node-circle {
+  transition: fill 0.15s, stroke 0.15s;
+}
+
+.tree-node-group:hover .tree-node-circle {
+  fill: #1e3a5f;
+  stroke: #60a5fa;
+}
+
+.selection-ring {
+  animation: pulse-ring 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-ring {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.tree-edge {
+  transition: stroke 0.2s;
+}
+
+.drop-ghost-circle {
+  animation: ghost-pulse 1s ease-in-out infinite;
+}
+
+@keyframes ghost-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* ============================
+   Bottom Bar
+   ============================ */
+.bottom-bar {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+}
+
+/* ============================
+   Node Source
+   ============================ */
+.node-source {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.node-source-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.node-value-input {
+  width: 80px;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  background: #1e293b;
+  color: #e2e8f0;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.node-value-input:focus {
+  border-color: #3b82f6;
+}
+
+.node-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.85rem 0.35rem 0.35rem;
+  border: 2px dashed #475569;
+  border-radius: 24px;
+  cursor: grab;
+  user-select: none;
+  transition: all 0.2s;
+  background: #1e293b;
+}
+
+.node-chip:hover {
+  border-color: #3b82f6;
+  background: #1e3a5f;
+}
+
+.node-chip:active {
+  cursor: grabbing;
+}
+
+.node-chip-dragging {
+  opacity: 0.4;
+}
+
+.node-chip-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #1e293b;
+  border: 2px solid #3b82f6;
+  color: #e2e8f0;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.node-chip-label {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+/* ============================
+   Config Panel
+   ============================ */
+.config-panel {
+  position: relative;
+}
+
+.config-dropdown {
+  position: absolute;
+  bottom: calc(100% + 0.5rem);
+  right: 0;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 1rem;
+  min-width: 200px;
+  z-index: 20;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.config-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.config-item label {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.config-input {
+  padding: 0.45rem 0.6rem;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  background: #0f172a;
+  color: #e2e8f0;
+  font-size: 0.85rem;
+  outline: none;
+}
+
+.config-input:focus {
+  border-color: #3b82f6;
+}
+
+/* ============================
+   Floating Drag Ghost
+   ============================ */
+.floating-drag-ghost {
+  position: fixed;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #1e40af;
+  border: 2px solid #3b82f6;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.85;
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+}
+
+/* ============================
+   Toolbar
+   ============================ */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.toolbar-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.toolbar .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================
+   Panels Row (Traversal + Validation)
+   ============================ */
+.panels-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.traversal-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.traversal-panel .traversal-values {
+  padding: 0.5rem 0.75rem;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  color: #e2e8f0;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 0.9rem;
+}
+
+.traversal-highlight-ring {
+  animation: pulse-ring 1.5s ease-in-out infinite;
+}
+
+/* ============================
+   Validation Panel
+   ============================ */
+.validation-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: 8px;
+  background: #1e293b;
+  color: #e2e8f0;
+}
+
+.validation-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.validation-panel .input-label {
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.validation-value {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #e2e8f0;
+}
+
+/* ============================
+   Responsive
+   ============================ */
+@media (max-width: 600px) {
+  .app-main {
+    padding: 0.75rem;
+  }
+
+  .app-header h1 {
+    font-size: 1.2rem;
+  }
+
+  .bottom-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .config-dropdown {
+    right: auto;
+    left: 0;
+  }
+
+  .tree-canvas-container {
+    min-height: 250px;
+  }
+}
