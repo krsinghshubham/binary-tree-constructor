@@ -232,8 +232,8 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
             x={svgWidth / 2}
             y={svgHeight / 2}
             textAnchor="middle"
-            fill="#64748b"
             fontSize={16}
+            className="canvas-empty-text"
           >
             Drag a node here or type in the input above
           </text>
@@ -278,13 +278,11 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
 
         {/* Drag preview */}
         {internalDrag && (
-          <g opacity={0.6} pointerEvents="none">
+          <g opacity={0.6} pointerEvents="none" className="canvas-drag-preview">
             <circle
               cx={internalDrag.pointerPos.x}
               cy={internalDrag.pointerPos.y}
               r={NODE_RADIUS}
-              fill="#1e40af"
-              stroke="#3b82f6"
               strokeWidth={2}
             />
             <text
@@ -292,7 +290,6 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
               y={internalDrag.pointerPos.y}
               textAnchor="middle"
               dominantBaseline="central"
-              fill="#fff"
               fontSize={14}
               fontWeight="bold"
             >

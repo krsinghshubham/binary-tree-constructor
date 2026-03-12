@@ -14,9 +14,9 @@ const TreeEdge: React.FC<TreeEdgeProps> = ({ x1, y1, x2, y2 }) => {
       y1={y1}
       x2={x2}
       y2={y2}
-      stroke="#64748b"
       strokeWidth={2}
       className="tree-edge"
+      style={{ stroke: 'var(--edge-stroke)' }}
     />
   );
 };

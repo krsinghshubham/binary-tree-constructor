@@ -85,7 +85,7 @@ const TreeNodeSVG: React.FC<TreeNodeSVGProps> = ({
 
   return (
     <g
-      className="tree-node-group"
+      className={`tree-node-group ${isSelected ? 'tree-node-selected' : ''}`}
       style={{ cursor: 'grab' }}
       onPointerDown={handlePointerDown}
       onDoubleClick={handleDoubleClick}
@@ -96,9 +96,9 @@ const TreeNodeSVG: React.FC<TreeNodeSVGProps> = ({
           cy={y}
           r={NODE_RADIUS + 5}
           fill="none"
-          stroke="#eab308"
           strokeWidth={3}
           className="traversal-highlight-ring"
+          style={{ stroke: 'var(--traversal-ring)' }}
         />
       )}
       {isSelected && (
@@ -107,17 +107,15 @@ const TreeNodeSVG: React.FC<TreeNodeSVGProps> = ({
           cy={y}
           r={NODE_RADIUS + 4}
           fill="none"
-          stroke="#3b82f6"
           strokeWidth={3}
           className="selection-ring"
+          style={{ stroke: 'var(--selection-ring)' }}
         />
       )}
       <circle
         cx={x}
         cy={y}
         r={NODE_RADIUS}
-        fill={isSelected ? '#1e40af' : '#1e293b'}
-        stroke={isSelected ? '#3b82f6' : '#475569'}
         strokeWidth={2}
         className="tree-node-circle"
       />
@@ -130,6 +128,7 @@ const TreeNodeSVG: React.FC<TreeNodeSVGProps> = ({
         >
           <input
             type="text"
+            className="tree-node-edit-input"
             value={editVal}
             onChange={(e) => setEditVal(e.target.value)}
             onKeyDown={handleEditKeyDown}
@@ -141,11 +140,9 @@ const TreeNodeSVG: React.FC<TreeNodeSVGProps> = ({
               textAlign: 'center',
               background: 'transparent',
               border: 'none',
-              color: '#fff',
               fontSize: '14px',
               fontWeight: 'bold',
               outline: 'none',
-              caretColor: '#3b82f6',
             }}
           />
         </foreignObject>
@@ -155,10 +152,10 @@ const TreeNodeSVG: React.FC<TreeNodeSVGProps> = ({
           y={y}
           textAnchor="middle"
           dominantBaseline="central"
-          fill="#f1f5f9"
           fontSize={14}
           fontWeight="bold"
           pointerEvents="none"
+          className="tree-node-text"
           style={{ userSelect: 'none' }}
         >
           {val}

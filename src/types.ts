@@ -27,6 +27,9 @@ export interface DropTarget {
   side: 'left' | 'right';
 }
 
+export type ThemeId = 'dark' | 'light' | 'leetcode';
+
 export interface AppConfig {
   defaultNodeValue: number;
+  theme: ThemeId;
 }
