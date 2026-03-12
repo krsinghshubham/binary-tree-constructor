@@ -236,7 +236,8 @@
 
 .theme-btn {
   flex: 1;
-  min-width: 0;
+  min-width: 5.5rem;
+  white-space: nowrap;
 }
 
 .theme-btn-active {
@@ -251,11 +252,24 @@
 .tree-canvas-container {
   flex: 1;
   min-height: 300px;
+  min-width: 280px;
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--canvas-bg);
   position: relative;
   overflow: hidden;
+  resize: both;
+  display: flex;
+  flex-direction: column;
+}
+
+.tree-canvas-zoom-wrapper {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+  touch-action: none;
+  isolation: isolate;
 }
 
 .tree-canvas-svg {
@@ -440,7 +454,7 @@
   border: 1px solid var(--border-input);
   border-radius: 10px;
   padding: 1rem;
-  min-width: 200px;
+  min-width: 260px;
   z-index: 20;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }

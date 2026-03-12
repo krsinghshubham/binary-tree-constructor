@@ -26,7 +26,7 @@ import './App.css';
 const TRAVERSAL_STEP_MS = 400;
 
 function App() {
-  const [config, setConfig] = useState<AppConfig>({ defaultNodeValue: -1, theme: 'dark' });
+  const [config, setConfig] = useState<AppConfig>({ defaultNodeValue: -1, theme: 'leetcode' });
   const undo = useUndoRedo<string>('[1,2,3]');
   const tree = useTreeState(config, { inputText: undo.state, setInputText: undo.setState });
 

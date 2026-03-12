@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { TreeNode, LayoutNode, DragPayload, DropTarget } from '../types';
 import { computeLayout, getDropGhostPositions, NODE_RADIUS } from '../utils/treeLayout';
 import { findNode, cloneTree } from '../utils/treeParser';
@@ -38,7 +38,17 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
   isExternalDragging,
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
+  const zoomWrapperRef = useRef<HTMLDivElement>(null);
   const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
+
+  const [zoom, setZoom] = useState({ scale: 1, tx: 0, ty: 0 });
+  const lastPinchDist = useRef<number | null>(null);
+  const pinchContentPoint = useRef<{ x: number; y: number } | null>(null);
+  const pinchInitialZoom = useRef<{ scale: number; tx: number; ty: number } | null>(null);
+
+  const isPanning = useRef(false);
+  const [isPanningCursor, setIsPanningCursor] = useState(false);
+  const panStart = useRef({ clientX: 0, clientY: 0, tx: 0, ty: 0 });
 
   // Internal drag state
   const [internalDrag, setInternalDrag] = useState<{
@@ -134,9 +144,40 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
     [root, getSVGPoint, findDropTarget, onMoveNode, onSelect],
   );
 
+  const handleCanvasPointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      const target = e.target as Element;
+      if (target.closest('.tree-node-group')) return;
+      const isBg =
+        target === svgRef.current ||
+        target.classList?.contains('canvas-bg');
+      if (isBg) {
+        e.preventDefault();
+        isPanning.current = true;
+        setIsPanningCursor(true);
+        panStart.current = {
+          clientX: e.clientX,
+          clientY: e.clientY,
+          tx: zoom.tx,
+          ty: zoom.ty,
+        };
+        (e.target as Element).setPointerCapture(e.pointerId);
+      }
+    },
+    [zoom.tx, zoom.ty],
+  );
+
   // Handle external drag (from NodeSource) pointer move over canvas
   const handleCanvasPointerMove = useCallback(
     (e: React.PointerEvent) => {
+      if (isPanning.current) {
+        setZoom((z) => ({
+          ...z,
+          tx: panStart.current.tx + (e.clientX - panStart.current.clientX),
+          ty: panStart.current.ty + (e.clientY - panStart.current.clientY),
+        }));
+        return;
+      }
       if (!isExternalDragging || !externalDragPayload) return;
       const svgPt = getSVGPoint(e.clientX, e.clientY);
       const target = findDropTarget(svgPt, null);
@@ -146,7 +187,13 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
   );
 
   const handleCanvasPointerUp = useCallback(
-    (_e: React.PointerEvent) => {
+    (e: React.PointerEvent) => {
+      if (isPanning.current) {
+        isPanning.current = false;
+        setIsPanningCursor(false);
+        (e.target as Element).releasePointerCapture(e.pointerId);
+        return;
+      }
       if (!isExternalDragging || !externalDragPayload) return;
 
       if (!root) {
@@ -202,6 +249,117 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
     return positions[activeTarget.side];
   }, [activeTarget, layoutNodeMap]);
 
+  const handleWheel = useCallback(
+    (e: React.WheelEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        const el = zoomWrapperRef.current;
+        if (!el) return;
+        const rect = el.getBoundingClientRect();
+        const localX = e.clientX - rect.left;
+        const localY = e.clientY - rect.top;
+        const factor = 1 - e.deltaY * 0.002;
+        const newScale = Math.min(3, Math.max(0.25, zoom.scale * factor));
+        const contentX = (localX - zoom.tx) / zoom.scale;
+        const contentY = (localY - zoom.ty) / zoom.scale;
+        const newTx = localX - contentX * newScale;
+        const newTy = localY - contentY * newScale;
+        setZoom({ scale: newScale, tx: newTx, ty: newTy });
+      }
+    },
+    [zoom],
+  );
+
+  const handleWheelCapture = useCallback((e: React.WheelEvent) => {
+    if (e.ctrlKey || e.metaKey) e.preventDefault();
+  }, []);
+
+  const getTouchCenter = (touches: React.TouchList) => ({
+    x: (touches[0].clientX + touches[1].clientX) / 2,
+    y: (touches[0].clientY + touches[1].clientY) / 2,
+  });
+  const getTouchDistance = (touches: React.TouchList) =>
+    Math.hypot(touches[1].clientX - touches[0].clientX, touches[1].clientY - touches[0].clientY);
+
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      if (e.touches.length === 2) {
+        lastPinchDist.current = getTouchDistance(e.touches);
+        const center = getTouchCenter(e.touches);
+        const el = zoomWrapperRef.current;
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          const localX = center.x - rect.left;
+          const localY = center.y - rect.top;
+          pinchContentPoint.current = {
+            x: (localX - zoom.tx) / zoom.scale,
+            y: (localY - zoom.ty) / zoom.scale,
+          };
+          pinchInitialZoom.current = { scale: zoom.scale, tx: zoom.tx, ty: zoom.ty };
+        }
+      }
+    },
+    [zoom],
+  );
+
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      if (
+        e.touches.length === 2 &&
+        lastPinchDist.current !== null &&
+        pinchContentPoint.current &&
+        pinchInitialZoom.current
+      ) {
+        e.preventDefault();
+        const dist = getTouchDistance(e.touches);
+        const el = zoomWrapperRef.current;
+        if (!el) return;
+        const rect = el.getBoundingClientRect();
+        const center = getTouchCenter(e.touches);
+        const localX = center.x - rect.left;
+        const localY = center.y - rect.top;
+        const init = pinchInitialZoom.current;
+        const newScale = Math.min(
+          3,
+          Math.max(0.25, init.scale * (dist / lastPinchDist.current)),
+        );
+        const content = pinchContentPoint.current;
+        setZoom({
+          scale: newScale,
+          tx: localX - content.x * newScale,
+          ty: localY - content.y * newScale,
+        });
+      }
+    },
+    [],
+  );
+
+  const handleTouchEnd = useCallback(() => {
+    lastPinchDist.current = null;
+    pinchContentPoint.current = null;
+    pinchInitialZoom.current = null;
+  }, []);
+
+  useEffect(() => {
+    const el = zoomWrapperRef.current;
+    if (!el) return;
+    const preventTouchZoom = (e: TouchEvent) => {
+      if (e.touches.length === 2) e.preventDefault();
+    };
+    el.addEventListener('touchmove', preventTouchZoom, { passive: false });
+    return () => el.removeEventListener('touchmove', preventTouchZoom);
+  }, []);
+
+  useEffect(() => {
+    const el = zoomWrapperRef.current;
+    if (!el) return;
+    const preventWheelZoom = (e: WheelEvent) => {
+      if (e.ctrlKey || e.metaKey) e.preventDefault();
+    };
+    el.addEventListener('wheel', preventWheelZoom, { passive: false });
+    return () => el.removeEventListener('wheel', preventWheelZoom);
+  }, []);
+
   return (
     <div className="tree-canvas-container">
       {selectedNodeId && (
@@ -211,15 +369,37 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
           </button>
         </div>
       )}
-      <svg
-        ref={svgRef}
-        viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-        className="tree-canvas-svg"
-        onClick={handleCanvasClick}
-        onPointerMove={handleCanvasPointerMove}
-        onPointerUp={handleCanvasPointerUp}
-        style={{ touchAction: 'none' }}
+      <div
+        ref={zoomWrapperRef}
+        className="tree-canvas-zoom-wrapper"
+        onWheel={handleWheel}
+        onWheelCapture={handleWheelCapture}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        style={{
+          touchAction: 'none',
+        }}
       >
+        <div
+          style={{
+            transform: `translate(${zoom.tx}px, ${zoom.ty}px) scale(${zoom.scale})`,
+            transformOrigin: '0 0',
+            width: '100%',
+            height: '100%',
+            minHeight: 300,
+          }}
+        >
+          <svg
+            ref={svgRef}
+            viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+            className="tree-canvas-svg"
+            onClick={handleCanvasClick}
+            onPointerDown={handleCanvasPointerDown}
+            onPointerMove={handleCanvasPointerMove}
+            onPointerUp={handleCanvasPointerUp}
+            style={{ touchAction: 'none', cursor: isPanningCursor ? 'grabbing' : 'grab' }}
+          >
         <rect
           className="canvas-bg"
           width={svgWidth}
@@ -297,7 +477,9 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
             </text>
           </g>
         )}
-      </svg>
+          </svg>
+        </div>
+      </div>
     </div>
   );
 };
