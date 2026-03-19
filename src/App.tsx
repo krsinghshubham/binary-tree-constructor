@@ -1,10 +1,14 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import type { AppConfig, DragPayload, DropTarget } from './types';
+import type { AppConfig, DragPayload, DropTarget, StructureKind } from './types';
+import type { GraphBuildMode } from './hooks/useGraphState';
 import { useTreeState } from './hooks/useTreeState';
+import { useGraphState } from './hooks/useGraphState';
 import { useUndoRedo } from './hooks/useUndoRedo';
-import { useTreeKeyboard } from './hooks/useTreeKeyboard';
+import { useTreeKeyboard, isTypingInField } from './hooks/useTreeKeyboard';
 import TreeCanvas from './components/TreeCanvas';
+import GraphCanvas from './components/GraphCanvas';
 import InputPanel from './components/InputPanel';
+import GraphInputPanel from './components/GraphInputPanel';
 import NodeSource from './components/NodeSource';
 import ConfigPanel from './components/ConfigPanel';
 import TraversalPanel from './components/TraversalPanel';
@@ -12,6 +16,8 @@ import type { TraversalType } from './components/TraversalPanel';
 import ValidationPanel from './components/ValidationPanel';
 import { ExportPanel } from './components/ExportPanel';
 import SampleTrees from './components/SampleTrees';
+import { StructureSwitcher } from './components/StructureSwitcher';
+import { GraphBuildToolbar } from './components/GraphBuildToolbar';
 import {
   getInorderIds,
   getPreorderIds,
@@ -21,24 +27,52 @@ import {
   getPostorderValues,
 } from './utils/treeTraversal';
 import { treeToPlainObject } from './utils/treeParser';
+import { graphToJson } from './utils/graphParser';
 import './App.css';
 
 const TRAVERSAL_STEP_MS = 400;
 
 function App() {
+  const [structureKind, setStructureKind] = useState<StructureKind>('tree');
   const [config, setConfig] = useState<AppConfig>({ defaultNodeValue: -1, theme: 'leetcode' });
-  const undo = useUndoRedo<string>('[1,2,3]');
-  const tree = useTreeState(config, { inputText: undo.state, setInputText: undo.setState });
+
+  const treeUndo = useUndoRedo<string>('[1,2,3]');
+  const graphUndo = useUndoRedo<string>('');
+
+  const tree = useTreeState(config, { inputText: treeUndo.state, setInputText: treeUndo.setState });
+  const graph = useGraphState({ inputText: graphUndo.state, setInputText: graphUndo.setState });
 
   useTreeKeyboard({
+    enabled: structureKind === 'tree',
     selectedNodeId: tree.selectedNodeId,
     onDelete: tree.deleteNode,
     onClearSelection: () => tree.setSelectedNodeId(null),
-    onUndo: undo.undo,
-    onRedo: undo.redo,
-    canUndo: undo.canUndo,
-    canRedo: undo.canRedo,
+    onUndo: treeUndo.undo,
+    onRedo: treeUndo.redo,
+    canUndo: treeUndo.canUndo,
+    canRedo: treeUndo.canRedo,
   });
+
+  const graphUndoRef = useRef(graphUndo);
+  graphUndoRef.current = graphUndo;
+
+  useEffect(() => {
+    if (structureKind !== 'graph') return;
+    const handler = (e: KeyboardEvent) => {
+      if (isTypingInField(e.target)) return;
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        e.preventDefault();
+        const u = graphUndoRef.current;
+        if (e.shiftKey) {
+          if (u.canRedo) u.redo();
+        } else {
+          if (u.canUndo) u.undo();
+        }
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [structureKind]);
 
   const [externalDragPayload, setExternalDragPayload] = useState<DragPayload | null>(null);
   const [isExternalDragging, setIsExternalDragging] = useState(false);
@@ -54,6 +88,53 @@ function App() {
       if (traversalIntervalRef.current) clearInterval(traversalIntervalRef.current);
     };
   }, []);
+
+  const stopTraversal = useCallback(() => {
+    if (traversalIntervalRef.current) {
+      clearInterval(traversalIntervalRef.current);
+      traversalIntervalRef.current = null;
+    }
+    setHighlightedNodeId(null);
+    setTraversalResult([]);
+    setActiveTraversalType(null);
+  }, []);
+
+  const handleStructureChange = useCallback(
+    (next: StructureKind) => {
+      if (next === structureKind) return;
+      stopTraversal();
+      tree.setSelectedNodeId(null);
+      graph.clearNodeHighlight();
+      graph.setBuildMode('connect');
+      setStructureKind(next);
+    },
+    [structureKind, stopTraversal, tree, graph],
+  );
+
+  const handleGraphBuildModeChange = useCallback(
+    (mode: GraphBuildMode) => {
+      graph.setBuildMode(mode);
+      graph.clearNodeHighlight();
+    },
+    [graph],
+  );
+
+  const graphRef = useRef(graph);
+  graphRef.current = graph;
+
+  useEffect(() => {
+    if (structureKind !== 'graph') return;
+    const handler = (e: KeyboardEvent) => {
+      if (isTypingInField(e.target)) return;
+      if (e.key !== 'Delete' && e.key !== 'Backspace') return;
+      const g = graphRef.current;
+      if (g.buildMode !== 'select' || !g.selectedNodeId) return;
+      e.preventDefault();
+      g.removeSelectedNode();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [structureKind]);
 
   const handleTraversalClick = useCallback(
     (type: TraversalType) => {
@@ -126,34 +207,51 @@ function App() {
 
   const handleSampleSelect = useCallback(
     (arrayString: string) => {
-      undo.setState(arrayString);
+      treeUndo.setState(arrayString);
     },
-    [undo],
+    [treeUndo],
   );
 
   const treeJson = tree.root ? treeToPlainObject(tree.root) : null;
+  const graphJson =
+    structureKind === 'graph' && !graph.parseError ? graphToJson(graph.graph) : undefined;
+
+  const activeUndo = structureKind === 'tree' ? treeUndo : graphUndo;
 
   return (
     <div className="app" data-theme={config.theme}>
       <header className="app-header">
-        <h1>Binary Tree Constructor</h1>
-        <p className="subtitle">Build, visualize, and export binary trees interactively</p>
+        <h1>DS Visualizer</h1>
+        <p className="subtitle">
+          {structureKind === 'tree'
+            ? 'Build, visualize, and export binary trees interactively'
+            : 'LeetCode JSON [[u,v],[u,v,w]] or {"n","edges"} · text a-b · build with Add node + Connect'}
+        </p>
+        <StructureSwitcher value={structureKind} onChange={handleStructureChange} />
       </header>
 
       <main className="app-main">
-        <InputPanel
-          value={tree.inputText}
-          onChange={tree.updateTreeFromInput}
-          onClear={tree.clearTree}
-        />
+        {structureKind === 'tree' ? (
+          <InputPanel
+            value={tree.inputText}
+            onChange={tree.updateTreeFromInput}
+            onClear={tree.clearTree}
+          />
+        ) : (
+          <GraphInputPanel
+            value={graph.inputText}
+            onChange={graph.updateGraphFromInput}
+            onClear={graph.clearGraph}
+          />
+        )}
 
         <div className="toolbar">
           <div className="toolbar-group">
             <button
               type="button"
               className="btn"
-              onClick={undo.undo}
-              disabled={!undo.canUndo}
+              onClick={activeUndo.undo}
+              disabled={!activeUndo.canUndo}
               title="Undo"
             >
               Undo
@@ -161,57 +259,94 @@ function App() {
             <button
               type="button"
               className="btn"
-              onClick={undo.redo}
-              disabled={!undo.canRedo}
+              onClick={activeUndo.redo}
+              disabled={!activeUndo.canRedo}
               title="Redo"
             >
               Redo
             </button>
           </div>
-          <ExportPanel arrayString={tree.inputText} treeJson={treeJson ?? undefined} />
-          <SampleTrees onSelectSample={handleSampleSelect} />
-        </div>
-
-        <div className="panels-row">
-          <TraversalPanel
-            root={tree.root}
-            highlightedId={highlightedNodeId}
-            onTraversalClick={handleTraversalClick}
-            traversalResult={traversalResult}
-            activeTraversalType={activeTraversalType}
+          <ExportPanel
+            mode={structureKind}
+            primaryText={structureKind === 'tree' ? tree.inputText : graph.inputText}
+            treeJson={treeJson ?? undefined}
+            graphJson={graphJson}
           />
-          <ValidationPanel root={tree.root} />
+          {structureKind === 'tree' && <SampleTrees onSelectSample={handleSampleSelect} />}
         </div>
 
-        <TreeCanvas
-          root={tree.root}
-          selectedNodeId={tree.selectedNodeId}
-          highlightedNodeId={highlightedNodeId}
-          onSelect={tree.setSelectedNodeId}
-          onDelete={tree.deleteNode}
-          onEditValue={tree.editNodeValue}
-          onAddNode={tree.addNode}
-          onMoveNode={tree.moveNode}
-          onSetRoot={tree.setRootNode}
-          defaultNodeValue={config.defaultNodeValue}
-          externalDragPayload={externalDragPayload}
-          onExternalDrop={handleExternalDrop}
-          isExternalDragging={isExternalDragging}
-        />
+        {structureKind === 'tree' ? (
+          <div className="panels-row">
+            <TraversalPanel
+              root={tree.root}
+              highlightedId={highlightedNodeId}
+              onTraversalClick={handleTraversalClick}
+              traversalResult={traversalResult}
+              activeTraversalType={activeTraversalType}
+            />
+            <ValidationPanel root={tree.root} />
+          </div>
+        ) : (
+          <>
+            <GraphBuildToolbar
+              buildMode={graph.buildMode}
+              onBuildModeChange={handleGraphBuildModeChange}
+              edgeWeightDraft={graph.edgeWeightDraft}
+              onEdgeWeightDraftChange={graph.setEdgeWeightDraft}
+              onAddNode={graph.addNode}
+              onRemoveSelected={graph.removeSelectedNode}
+              canRemove={graph.buildMode === 'select' && !!graph.selectedNodeId}
+            />
+            <p className="graph-mode-note">
+              Pan: drag background · Zoom: pinch or <kbd>Ctrl</kbd> + scroll
+            </p>
+          </>
+        )}
+
+        {structureKind === 'tree' ? (
+          <TreeCanvas
+            root={tree.root}
+            selectedNodeId={tree.selectedNodeId}
+            highlightedNodeId={highlightedNodeId}
+            onSelect={tree.setSelectedNodeId}
+            onDelete={tree.deleteNode}
+            onEditValue={tree.editNodeValue}
+            onAddNode={tree.addNode}
+            onMoveNode={tree.moveNode}
+            onSetRoot={tree.setRootNode}
+            defaultNodeValue={config.defaultNodeValue}
+            externalDragPayload={externalDragPayload}
+            onExternalDrop={handleExternalDrop}
+            isExternalDragging={isExternalDragging}
+          />
+        ) : (
+          <GraphCanvas
+            graph={graph.parseError ? { nodes: [], edges: [] } : graph.graph}
+            parseError={graph.parseError}
+            highlightNodeId={
+              graph.buildMode === 'connect' ? graph.connectAnchorId : graph.selectedNodeId
+            }
+            onNodeClick={graph.handleNodeClick}
+            onClearHighlight={graph.clearNodeHighlight}
+          />
+        )}
 
         <div className="bottom-bar">
-          <NodeSource
-            defaultValue={config.defaultNodeValue}
-            onDragStart={handleExternalDragStart}
-            onDragMove={handleExternalDragMove}
-            onDragEnd={handleExternalDragEnd}
-            isDragging={isExternalDragging}
-          />
+          {structureKind === 'tree' && (
+            <NodeSource
+              defaultValue={config.defaultNodeValue}
+              onDragStart={handleExternalDragStart}
+              onDragMove={handleExternalDragMove}
+              onDragEnd={handleExternalDragEnd}
+              isDragging={isExternalDragging}
+            />
+          )}
+          {structureKind === 'graph' && <div className="bottom-bar-spacer" aria-hidden />}
           <ConfigPanel config={config} onConfigChange={setConfig} />
         </div>
       </main>
 
-      {isExternalDragging && dragGhostPos && externalDragPayload && (
+      {structureKind === 'tree' && isExternalDragging && dragGhostPos && externalDragPayload && (
         <div
           className="floating-drag-ghost"
           style={{ left: dragGhostPos.x - 20, top: dragGhostPos.y - 20 }}

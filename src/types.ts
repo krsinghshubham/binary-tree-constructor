@@ -33,3 +33,18 @@ export interface AppConfig {
   defaultNodeValue: number;
   theme: ThemeId;
 }
+
+/** Top-level mode: binary tree vs general graph visualization */
+export type StructureKind = 'tree' | 'graph';
+
+export interface GraphEdge {
+  from: string;
+  to: string;
+  weight?: number;
+}
+
+export interface GraphData {
+  /** Sorted unique vertex labels */
+  nodes: string[];
+  edges: GraphEdge[];
+}

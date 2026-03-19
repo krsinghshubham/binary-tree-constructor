@@ -1,4 +1,4 @@
-# Deployment guide: Binary Tree Constructor
+# Deployment guide: DS Visualizer
 
 This file tracks **every command**, **why we run it**, and **in what order** so you can understand and repeat the process.
 
@@ -7,7 +7,7 @@ This file tracks **every command**, **why we run it**, and **in what order** so 
 ## Deploy on Vercel now (browser – no CLI login)
 
 1. **Open this link** (imports your GitHub repo):  
-   **https://vercel.com/new/import?s=https://github.com/krsinghshubham/binary-tree-constructor**
+   **https://vercel.com/new/import?s=https://github.com/krsinghshubham/ds-visualizer**
 
 2. **Log in** to Vercel with GitHub if asked.
 
@@ -15,7 +15,7 @@ This file tracks **every command**, **why we run it**, and **in what order** so 
    - **Option A:** On that same screen, click the **“Connect GitHub”** or **“Configure”** link that Vercel shows—it will take you to the right place to authorize.
    - **Option B:** Go to **https://vercel.com/account** (log in if needed). In the left sidebar, look for **“Git”** or **“Integrations”** and connect GitHub from there.
    - **Option C:** Go to **https://vercel.com/new**. If your repos don’t appear, click **“Adjust GitHub App Permissions”** or **“Connect different account”** and authorize the repo access.
-   - In GitHub, approve Vercel (all repos or only `binary-tree-constructor`). Then go back to **Add New → Project** and import `krsinghshubham/binary-tree-constructor` again.
+   - In GitHub, approve Vercel (all repos or only `ds-visualizer`). Then go back to **Add New → Project** and import `krsinghshubham/ds-visualizer` again.
 
 4. **Confirm settings** (Vercel usually detects them):
    - **Build Command:** `npm run build`
@@ -24,10 +24,10 @@ This file tracks **every command**, **why we run it**, and **in what order** so 
 
 5. **Environment Variables:** leave empty. This app doesn’t use any; you can skip that section.
 
-6. Click **Deploy**. Wait 1–2 minutes. Your live URL will be shown (e.g. `binary-tree-constructor-xxx.vercel.app`).
+6. Click **Deploy**. Wait 1–2 minutes. Your live URL will be shown (e.g. `ds-visualizer-xxx.vercel.app`).
 
 **Commands we ran (for the record):**
-- `cd /Users/shubsingh/Desktop/PlayArena/binary-tree-constructor` – go to project
+- `cd /Users/shubsingh/Desktop/PlayArena/ds-visualizer` – go to project
 - `npx vercel --yes` – failed because CLI needs `vercel login` first; using the browser import above avoids that.
 
 ---
@@ -43,10 +43,10 @@ This file tracks **every command**, **why we run it**, and **in what order** so 
 ## Prerequisites (one-time)
 
 - **Node.js** installed (you already have it).
-- **Git** and the project in a **GitHub** repo (already done: `krsinghshubham/binary-tree-constructor`).
+- **Git** and the project in a **GitHub** repo (already done: `krsinghshubham/ds-visualizer`).
 - **Project path**:  
-  `~/Desktop/PlayArena/binary-tree-constructor`  
-  (or `/Users/shubsingh/Desktop/PlayArena/binary-tree-constructor`)
+  `~/Desktop/PlayArena/ds-visualizer`  
+  (or `/Users/shubsingh/Desktop/PlayArena/ds-visualizer`)
 
 ---
 
@@ -55,7 +55,7 @@ This file tracks **every command**, **why we run it**, and **in what order** so 
 **Command:**
 
 ```bash
-cd /Users/shubsingh/Desktop/PlayArena/binary-tree-constructor
+cd /Users/shubsingh/Desktop/PlayArena/ds-visualizer
 npm run build
 ```
 
@@ -95,7 +95,7 @@ Below are the **exact commands and steps** for each.
 
 2. **Import the GitHub repo**  
    - Dashboard → **Add New** → **Project**.  
-   - Choose **Import Git Repository** and select `krsinghshubham/binary-tree-constructor`.  
+   - Choose **Import Git Repository** and select `krsinghshubham/ds-visualizer`.  
    - Vercel will detect it’s a Vite app and suggest:
      - **Build Command:** `npm run build`
      - **Output Directory:** `dist`
@@ -105,12 +105,12 @@ Below are the **exact commands and steps** for each.
    On their servers they run something equivalent to:
    - `npm install`
    - `npm run build`
-   - They then serve the contents of `dist/` on a URL like `binary-tree-constructor-xxx.vercel.app`.
+   - They then serve the contents of `dist/` on a URL like `ds-visualizer-xxx.vercel.app`.
 
 **Optional – deploy from your machine once with Vercel CLI:**
 
 ```bash
-cd /Users/shubsingh/Desktop/PlayArena/binary-tree-constructor
+cd /Users/shubsingh/Desktop/PlayArena/ds-visualizer
 npx vercel
 ```
 
@@ -134,28 +134,28 @@ So the **same idea** as the GitHub flow, but triggered from your terminal instea
 
 2. **Create a Pages project**  
    - **Workers & Pages** → **Create** → **Pages** → **Connect to Git**.
-   - Select your GitHub account and repo `binary-tree-constructor`.
+   - Select your GitHub account and repo `ds-visualizer`.
    - Configure build:
      - **Build command:** `npm run build`
      - **Build output directory:** `dist`
    - Click **Save and Deploy**.
 
 3. **What Cloudflare does:**  
-   Same idea as Vercel: they run `npm install` and `npm run build`, then serve the `dist/` folder. You get a URL like `binary-tree-constructor.pages.dev`.
+   Same idea as Vercel: they run `npm install` and `npm run build`, then serve the `dist/` folder. You get a URL like `ds-visualizer.pages.dev`.
 
 **Optional – deploy from your machine with Wrangler (Cloudflare CLI):**
 
 ```bash
-cd /Users/shubsingh/Desktop/PlayArena/binary-tree-constructor
+cd /Users/shubsingh/Desktop/PlayArena/ds-visualizer
 npm run build
-npx wrangler pages deploy dist --project-name=binary-tree-constructor
+npx wrangler pages deploy dist --project-name=ds-visualizer
 ```
 
 **Why:**
 
 - `npm run build` creates/updates `dist/`.
 - `npx wrangler pages deploy dist` uploads the `dist` folder to Cloudflare Pages.
-- `--project-name=binary-tree-constructor` sets the project name. First time you may need to run `npx wrangler login` and create the project (CLI will prompt).
+- `--project-name=ds-visualizer` sets the project name. First time you may need to run `npx wrangler login` and create the project (CLI will prompt).
 
 ---
 
@@ -205,7 +205,7 @@ npx wrangler pages deploy dist --project-name=binary-tree-constructor
    Repo → **Settings** → **Pages** → **Source**: “GitHub Actions”.
 
 3. **Push to `main`**  
-   On the next push to `main`, the workflow runs: checkout → `npm ci` → `npm run build` → publish `dist/` to the `gh-pages` branch. Your site will be at `https://krsinghshubham.github.io/binary-tree-constructor/`.
+   On the next push to `main`, the workflow runs: checkout → `npm ci` → `npm run build` → publish `dist/` to the `gh-pages` branch. Your site will be at `https://krsinghshubham.github.io/ds-visualizer/`.
 
 **Why each part:**
 
@@ -222,10 +222,10 @@ npx wrangler pages deploy dist --project-name=binary-tree-constructor
 
 | Step | Command | Reason |
 |------|--------|--------|
-| 1 | `cd /Users/shubsingh/Desktop/PlayArena/binary-tree-constructor` | Go to project root |
+| 1 | `cd /Users/shubsingh/Desktop/PlayArena/ds-visualizer` | Go to project root |
 | 2 | `npm run build` | Produce static files in `dist/` |
 | 3a | (Vercel) Connect repo in dashboard or run `npx vercel` | Upload and serve `dist/` |
-| 3b | (Cloudflare) Connect repo in dashboard or run `npx wrangler pages deploy dist --project-name=binary-tree-constructor` | Same for Cloudflare |
+| 3b | (Cloudflare) Connect repo in dashboard or run `npx wrangler pages deploy dist --project-name=ds-visualizer` | Same for Cloudflare |
 | 3c | (GitHub Pages) Add `.github/workflows/deploy.yml`, enable Pages, push | Build and publish from GitHub Actions |
 
 ---

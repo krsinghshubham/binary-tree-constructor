@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 
 interface UseTreeKeyboardOptions {
+  /** When false, shortcuts are not registered (e.g. graph mode). */
+  enabled?: boolean;
   selectedNodeId: string | null;
   onDelete: (id: string) => void;
   onClearSelection: () => void;
@@ -10,15 +12,9 @@ interface UseTreeKeyboardOptions {
   canRedo?: boolean;
 }
 
-function isInputTarget(target: EventTarget | null): boolean {
-  if (!target || !(target instanceof HTMLElement)) return false;
-  const tag = target.tagName.toLowerCase();
-  const role = target.getAttribute('contenteditable');
-  return tag === 'input' || tag === 'textarea' || role === 'true';
-}
-
 export function useTreeKeyboard(options: UseTreeKeyboardOptions): void {
   const {
+    enabled = true,
     selectedNodeId,
     onDelete,
     onClearSelection,
@@ -29,8 +25,10 @@ export function useTreeKeyboard(options: UseTreeKeyboardOptions): void {
   } = options;
 
   useEffect(() => {
+    if (!enabled) return;
+
     const handler = (e: KeyboardEvent) => {
-      const inInput = isInputTarget(e.target);
+      const inInput = isTypingInField(e.target);
 
       if (e.key === 'Delete' || e.key === 'Backspace') {
         if (selectedNodeId && !inInput) {
@@ -61,6 +59,7 @@ export function useTreeKeyboard(options: UseTreeKeyboardOptions): void {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [
+    enabled,
     selectedNodeId,
     onDelete,
     onClearSelection,
@@ -69,4 +68,11 @@ export function useTreeKeyboard(options: UseTreeKeyboardOptions): void {
     canUndo,
     canRedo,
   ]);
+}
+
+export function isTypingInField(target: EventTarget | null): boolean {
+  if (!target || !(target instanceof HTMLElement)) return false;
+  const tag = target.tagName.toLowerCase();
+  const role = target.getAttribute('contenteditable');
+  return tag === 'input' || tag === 'textarea' || role === 'true';
 }

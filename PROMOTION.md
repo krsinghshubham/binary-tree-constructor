@@ -1,4 +1,4 @@
-# Promotion: Binary Tree Constructor
+# Promotion: DS Visualizer
 
 Use the posts below to share the tool. Replace or trim as needed for each platform.
 
@@ -6,7 +6,7 @@ Use the posts below to share the tool. Replace or trim as needed for each platfo
 
 ## Live link
 
-**https://binary-tree-constructor.vercel.app/**
+**https://binary-tree-constructor.vercel.app/** *(update to your URL if you redeploy under `ds-visualizer`)*
 
 ---
 
@@ -23,7 +23,7 @@ I made a small free tool so you can draw binary trees and get the exact array to
 - Run inorder/preorder/postorder and see the result.
 - Copy the array and paste it straight into the problem.
 
-No sign-up, no install: [https://binary-tree-constructor.vercel.app/](https://binary-tree-constructor.vercel.app/)
+No sign-up, no install: [live demo URL](https://binary-tree-constructor.vercel.app/) *(replace after redeploy if needed)*
 
 Hope it helps with tree problems.
 
@@ -64,7 +64,7 @@ whic
 | **Twitter / X** | 1–2 tweets: “Built a small tool to visually create binary tree input for LeetCode. Paste or draw, then copy the array. [link]” Use tags: #LeetCode #Programming #DSA #100DaysOfCode |
 | **LinkedIn** | Short post: “I built a free tool to visualize and build binary tree inputs for LeetCode. Link in comments. Hope it helps anyone prepping for interviews.” |
 | **Dev.to** | Short “Show dev” or “Tool” post: what it does, why, link; no long tutorial needed. |
-| **Hacker News** | “Show HN: Binary tree constructor for LeetCode input” with 1–2 sentences and link. Post once; avoid reposting. |
+| **Hacker News** | “Show HN: DS Visualizer — LeetCode tree/graph input” with 1–2 sentences and link. Post once; avoid reposting. |
 | **Indie Hackers** | “Shipped a small tool for LeetCode tree input” in a “Share what you built” style post. |
 | **Discord** | LeetCode / programming / interview-prep servers: share in “tools” or “resources” with one line + link (only if the server allows). |
 | **Blind / Fishbowl** | If you’re active there, one line + link in a relevant prep thread (follow each community’s rules). |
@@ -77,4 +77,4 @@ whic
 - “Paste or draw a binary tree, copy the array for LeetCode: [link]”
 - “Free app: visualize & build binary tree input for LeetCode. [link]”
 
-Use **https://binary-tree-constructor.vercel.app/** as the link everywhere.
+Use your deployed URL as the link everywhere; the legacy demo may still be **https://binary-tree-constructor.vercel.app/** until you change the Vercel project.
